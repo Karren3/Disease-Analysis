@@ -1,0 +1,57 @@
+Imports System.Data.SqlClient
+
+Public Class registration
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim FirstName As String = TextBox1.Text
+        Dim LastName As String = TextBox2.Text
+        Dim Email As String = TextBox3.Text
+        Dim Password As String = TextBox4.Text
+
+        Dim query As String = "insert into regis_table values (@firstname,@lastname,@email,@password)"
+
+        Using con As SqlConnection = New SqlConnection("Server=DESKTOP-90CKLJ3;Initial Catalog=regisdb;Integrated Security=True;TrustServerCertificate=True ")
+
+            Using cnn As SqlCommand = New SqlCommand(query, con)
+
+                cnn.Parameters.AddWithValue("@FirstName", FirstName)
+                cnn.Parameters.AddWithValue("@LastName", LastName)
+                cnn.Parameters.AddWithValue("@Email", Email)
+                cnn.Parameters.AddWithValue("@Password", Password)
+
+                con.Open()
+                cnn.ExecuteNonQuery()
+                con.Close()
+
+                MessageBox.Show("registration complete")
+
+
+                Me.Hide()
+                Dim login As New login()
+                login.Show()
+
+                login.Location = Me.Location
+
+
+            End Using
+
+
+        End Using
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+
+End Class
