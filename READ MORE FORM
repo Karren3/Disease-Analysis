@@ -1,0 +1,47 @@
+
+Imports System.Data.SqlClient
+Public Class search
+    Private Sub search_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Load diseases into ComboBox when the form loads
+
+        Me.WindowState = FormWindowState.Maximized
+
+        Module2.LoadDiseases(ComboBox1)
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+
+    End Sub
+
+
+
+    Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
+        ' Ensure something is selected
+        If ComboBox1.SelectedItem IsNot Nothing Then
+            ' Get the selected disease name
+            Dim selectedDisease As String = ComboBox1.SelectedItem.ToString()
+
+            ' Fetch and display symptoms & causes in Labels
+            Module2.GetDiseaseDetails(selectedDisease, Label1, Label2)
+        End If
+
+
+
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim Form2 As New Form2()
+        Form2.Show()
+
+        ' Close the current form
+        Me.Close()
+
+
+        Form2.Location = Me.Location
+    End Sub
+End Class
