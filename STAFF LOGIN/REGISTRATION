@@ -1,0 +1,73 @@
+###STAFF LOGIN###
+Imports System.Data.SqlClient
+Public Class stafflogin
+    Private connectionString As String = "Server=DESKTOP-90CKLJ3;Initial Catalog=staffregis;Integrated Security=True;"
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+        Dim FirstName As String = TextBox1.Text.Trim()
+        Dim PasswordHash As String = TextBox2.Text.Trim()
+        If FirstName = "" Or PasswordHash = "" Then
+            MessageBox.Show("Please enter all fields!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+
+            Exit Sub
+        End If
+
+        Using conn As New SqlConnection(connectionString)
+            conn.Open()
+            Dim query As String = "SELECT COUNT(*) FROM Registration WHERE FirstName = @FirstName AND PasswordHash = @PasswordHash"
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@FirstName", FirstName)
+                cmd.Parameters.AddWithValue("@PasswordHash", PasswordHash)
+                Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+
+                If count > 0 Then
+                    MessageBox.Show("Login Successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Dim dashboardstaff As New dashboardstaff()
+                    dashboardstaff.Show()
+                    Me.Hide()
+                    dashboardstaff.Location = Me.Location
+
+                Else
+                    MessageBox.Show("Invalid First Name or Password!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End If
+            End Using
+        End Using
+    End Sub
+
+    Private Sub stafflogin_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        TextBox2.UseSystemPasswordChar = Not CheckBox1.Checked
+    End Sub
+End Class
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###########################################################################################################################
+
+###STAFF REGISTRATION###
