@@ -1,0 +1,56 @@
+#HOME PAGE (VB.NET)
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+
+Public Class Home
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim login As New login
+        login.Show()
+        login.Location = Me.Location
+
+
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim registeration As New registration()
+        registeration.Show()
+
+        registeration.Location = Me.Location
+
+    End Sub
+
+
+
+
+
+
+
+
+    Private Sub Home_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Me.WindowState = FormWindowState.Maximized
+
+
+        Dim Form2 As New Form2()
+
+        Form2.Location = Me.Location
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\picc.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim staff As New staff()
+        staff.Show()
+
+        staff.Location = Me.Location
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Application.Exit()
+    End Sub
+End Class
