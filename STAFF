@@ -1,0 +1,571 @@
+#LOGIN FORM FOR ADMIN
+
+Imports System.Data.SqlClient
+Public Class stafflogin
+    Private connectionString As String = "Server=DESKTOP-90CKLJ3;Initial Catalog=staffregis;Integrated Security=True;"
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+        Dim FirstName As String = TextBox1.Text.Trim()
+        Dim PasswordHash As String = TextBox2.Text.Trim()
+        If FirstName = "" Or PasswordHash = "" Then
+            MessageBox.Show("Please enter all fields!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+
+            Exit Sub
+        End If
+
+        Using conn As New SqlConnection(connectionString)
+            conn.Open()
+            Dim query As String = "SELECT COUNT(*) FROM Registration WHERE FirstName = @FirstName AND PasswordHash = @PasswordHash"
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@FirstName", FirstName)
+                cmd.Parameters.AddWithValue("@PasswordHash", PasswordHash)
+                Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+
+                If count > 0 Then
+                    MessageBox.Show("Login Successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Dim dashboardstaff As New dashboardstaff()
+                    dashboardstaff.Show()
+                    Me.Hide()
+                    dashboardstaff.Location = Me.Location
+
+                Else
+                    MessageBox.Show("Invalid First Name or Password!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End If
+            End Using
+        End Using
+    End Sub
+
+    Private Sub stafflogin_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        TextBox2.UseSystemPasswordChar = Not CheckBox1.Checked
+    End Sub
+End Class
+............................................................................................
+
+#REGISTRATION FORM FOR ADMIN
+
+
+
+Imports System.Data.SqlClient
+
+Public Class staffregis
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim FirstName As String = TextBox1.Text
+        Dim LastName As String = TextBox2.Text
+        Dim Email As String = TextBox3.Text
+        Dim PasswordHash As String = TextBox4.Text
+
+        Dim query As String = "insert into Registration values (@firstname,@lastname,@email,@passwordhash)"
+
+        Using con As SqlConnection = New SqlConnection("Server=DESKTOP-90CKLJ3;Initial Catalog=staffregis;Integrated Security=True;TrustServerCertificate=True ")
+
+            Using cnn As SqlCommand = New SqlCommand(query, con)
+
+                cnn.Parameters.AddWithValue("@FirstName", FirstName)
+                cnn.Parameters.AddWithValue("@LastName", LastName)
+                cnn.Parameters.AddWithValue("@Email", Email)
+                cnn.Parameters.AddWithValue("@PasswordHash", PasswordHash)
+
+                con.Open()
+                cnn.ExecuteNonQuery()
+                con.Close()
+
+                MessageBox.Show("registration complete")
+
+
+                Me.Hide()
+                Dim stafflogin As New stafflogin()
+                stafflogin.Show()
+
+                stafflogin.Location = Me.Location
+
+
+            End Using
+
+
+        End Using
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+
+End Class
+
+.................................................................................................................
+
+#DASHBOARD FOR ADMIN
+
+
+Public Class dashboardstaff
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim viewappointment As New viewappointment
+        viewappointment.Show()
+        viewappointment.Location = Me.Location
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim viewuserinfo As New viewuserinfo
+        viewuserinfo.Show()
+        viewuserinfo.Location = Me.Location
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim viewpayment As New viewpayment
+        viewpayment.Show()
+        viewpayment.Location = Me.Location
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        Dim home As New Home
+        home.Show()
+        home.Location = Me.Location
+    End Sub
+
+    Private Sub dashboardstaff_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim report As New report
+        report.Show()
+        report.Location = Me.Location
+    End Sub
+End Class
+.................................................................................................
+# view appointment (admin)
+
+
+Imports System.Data.SqlClient
+
+Public Class viewappointment
+    Dim connectionString As String = "Server=DESKTOP-90CKLJ3;Initial Catalog=Appointment;Integrated Security=True;TrustServerCertificate=True;"
+
+    Private Sub viewappointment_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        LoadAppointments()
+
+        Me.WindowState = FormWindowState.Maximized
+
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub LoadAppointments()
+        DataGridView1.Columns.Clear()
+        Dim table As New DataTable()
+
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "SELECT AppointmentID, PatientName, DoctorName, AppointmentDate, AppointmentTime, Status FROM Appointments ORDER BY AppointmentDate, AppointmentTime"
+            Dim adapter As New SqlDataAdapter(query, con)
+            adapter.Fill(table)
+        End Using
+
+        DataGridView1.DataSource = table
+
+        ' Add editable ComboBox for Status column
+        Dim statusColumn As New DataGridViewComboBoxColumn()
+        statusColumn.HeaderText = "Status"
+        statusColumn.Name = "Status"
+        statusColumn.DataPropertyName = "Status"
+        statusColumn.Items.AddRange("Pending", "Booked", "Cancelled")
+        statusColumn.DisplayStyle = DataGridViewComboBoxDisplayStyle.ComboBox
+
+        ' Remove the autogenerated Status column and insert the custom one
+        DataGridView1.Columns.Remove("Status")
+        DataGridView1.Columns.Add(statusColumn)
+
+        ' Optional: make the grid cleaner
+        DataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+    End Sub
+
+    ' Update status of the selected appointment
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        If DataGridView1.SelectedRows.Count = 0 Then
+            MessageBox.Show("Please select a row to update.")
+            Return
+        End If
+
+        Dim row As DataGridViewRow = DataGridView1.SelectedRows(0)
+        Dim appointmentID As Integer = Convert.ToInt32(row.Cells("AppointmentID").Value)
+        Dim newStatus As String = row.Cells("Status").Value.ToString()
+
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "UPDATE Appointments SET Status = @Status WHERE AppointmentID = @AppointmentID"
+            Using cmd As New SqlCommand(query, con)
+                cmd.Parameters.AddWithValue("@Status", newStatus)
+                cmd.Parameters.AddWithValue("@AppointmentID", appointmentID)
+
+                Try
+                    con.Open()
+                    Dim result = cmd.ExecuteNonQuery()
+                    If result > 0 Then
+                        MessageBox.Show("Status updated successfully.")
+                        LoadAppointments()
+                    Else
+                        MessageBox.Show("No record updated. Check selection.")
+                    End If
+                Catch ex As Exception
+                    MessageBox.Show("Error updating status: " & ex.Message)
+                End Try
+            End Using
+        End Using
+    End Sub
+
+    ' Return to dashboard
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim dashboardstaff As New dashboardstaff()
+        dashboardstaff.Show()
+        Me.Hide()
+        dashboardstaff.Location = Me.Location
+    End Sub
+End Class
+.............................................................................................
+# view payment
+
+Imports System.Data.SqlClient
+
+Public Class viewpayment
+    ' Connection String - Ensure this matches your SQL Server configuration
+    Dim connectionString As String = "Server=DESKTOP-90CKLJ3;Database=PaymentDB;Integrated Security=True;TrustServerCertificate=True;"
+
+    ' Load Payments Data into DataGridView
+    Private Sub LoadPaymentsData()
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "SELECT PaymentID, PatientName, Amount, PaymentMethod, PaymentDate FROM Payments ORDER BY PaymentDate DESC"
+            Dim adapter As New SqlDataAdapter(query, con)
+            Dim table As New DataTable()
+
+            Try
+                con.Open()
+                adapter.Fill(table)
+                DataGridView1.DataSource = table ' Display data in DataGridView
+            Catch ex As Exception
+                MessageBox.Show("Error loading payment data: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                con.Close()
+            End Try
+        End Using
+    End Sub
+
+
+
+    ' Button Click to Return to Admin Dashboard
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim dashboardstaff As New dashboardstaff()
+        dashboardstaff.Show()
+        Me.Hide()
+        dashboardstaff.Location = Me.Location
+    End Sub
+
+    ' Load payments automatically when form opens
+    Private Sub AdminPaymentsForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        LoadPaymentsData()
+
+        Me.WindowState = FormWindowState.Maximized
+
+
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+End Class
+............................................................................................................................
+#view user info
+
+
+
+Imports System.Data.SqlClient
+
+Public Class viewuserinfo
+    Dim connectionString As String = "Server=DESKTOP-90CKLJ3;Database=regisdb;Integrated Security=True;TrustServerCertificate=True;"
+
+    ' Load User Data into DataGridView
+    Private Sub LoadUserData()
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "SELECT FirstName, LastName, Email, Password FROM regis_table"
+            Dim adapter As New SqlDataAdapter(query, con)
+            Dim table As New DataTable()
+
+            Try
+                con.Open()
+                adapter.Fill(table)
+                DataGridView1.DataSource = table
+            Catch ex As Exception
+                MessageBox.Show("Error loading user data: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                con.Close()
+            End Try
+        End Using
+    End Sub
+
+    ' Add New User
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim firstName As String = InputBox("Enter First Name:")
+        Dim lastName As String = InputBox("Enter Last Name:")
+        Dim email As String = InputBox("Enter Email:")
+        Dim password As String = InputBox("Enter Password:")
+
+        If String.IsNullOrWhiteSpace(firstName) OrElse String.IsNullOrWhiteSpace(email) Then
+            MessageBox.Show("First Name and Email are required.")
+            Return
+        End If
+
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "INSERT INTO regis_table (FirstName, LastName, Email, Password) VALUES (@FirstName, @LastName, @Email, @Password)"
+            Dim cmd As New SqlCommand(query, con)
+
+            cmd.Parameters.AddWithValue("@FirstName", firstName)
+            cmd.Parameters.AddWithValue("@LastName", lastName)
+            cmd.Parameters.AddWithValue("@Email", email)
+            cmd.Parameters.AddWithValue("@Password", password)
+
+            Try
+                con.Open()
+                cmd.ExecuteNonQuery()
+                MessageBox.Show("User added successfully.")
+                LoadUserData()
+            Catch ex As Exception
+                MessageBox.Show("Error adding user: " & ex.Message)
+            End Try
+        End Using
+    End Sub
+
+    ' Delete Selected User
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        If DataGridView1.SelectedRows.Count = 0 Then
+            MessageBox.Show("Please select a user to delete.")
+            Return
+        End If
+
+        Dim email As String = DataGridView1.SelectedRows(0).Cells("Email").Value.ToString()
+
+        Dim confirm = MessageBox.Show($"Are you sure you want to delete user with email: {email}?", "Confirm Delete", MessageBoxButtons.YesNo)
+        If confirm = DialogResult.No Then Exit Sub
+
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "DELETE FROM regis_table WHERE Email = @Email"
+            Dim cmd As New SqlCommand(query, con)
+            cmd.Parameters.AddWithValue("@Email", email)
+
+            Try
+                con.Open()
+                cmd.ExecuteNonQuery()
+                MessageBox.Show("User deleted successfully.")
+                LoadUserData()
+            Catch ex As Exception
+                MessageBox.Show("Error deleting user: " & ex.Message)
+            End Try
+        End Using
+    End Sub
+
+    ' Return to Previous Form
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim dashboardstaff As New dashboardstaff()
+        dashboardstaff.Show()
+        Me.Hide()
+        dashboardstaff.Location = Me.Location
+    End Sub
+
+    ' Form Load
+    Private Sub AdminForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        LoadUserData()
+        Me.WindowState = FormWindowState.Maximized
+
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message)
+            End Try
+        End If
+    End Sub
+End Class
+............................................................................................................
+#generate report
+
+
+Imports System.Data.SqlClient
+Imports System.IO
+Imports System.Drawing.Printing
+
+Public Class report
+    Dim con As New SqlConnection("Server=DESKTOP-90CKLJ3;Initial Catalog=Patientinfo;Integrated Security=True;TrustServerCertificate=True;")
+
+    Dim symptomDiagnosis As New Dictionary(Of String, String) From {
+        {"Fever", "Possible infection"},
+        {"Loss Of Taste And Smell", "Possible infection"},
+        {"Cough", "Could indicate flu or respiratory issue"},
+        {"Headache", "May be due to stress or migraine"},
+        {"Fatigue", "Could indicate anemia or overexertion"},
+        {"Shortness of breath", "Needs cardio-respiratory check"},
+        {"Wheezing", "obstructive pulmonary disease (COPD), and respiratory infections"},
+        {"Numbness Of Hands,Feet", "Vitamin deficiencies"}
+    }
+
+    Private Sub report_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Me.WindowState = FormWindowState.Maximized
+
+        CheckedListBox1.Items.AddRange(symptomDiagnosis.Keys.ToArray())
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    ' 🔍 Fetch patient info + autofill symptoms
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        If String.IsNullOrWhiteSpace(TextBox1.Text) Then
+            MessageBox.Show("Please enter the email address to fetch patient data.")
+            Return
+        End If
+
+        Dim cmd As New SqlCommand("SELECT TOP 1 FirstName, LastName, Age, Gender, Symptoms FROM PatientInfo WHERE Email = @Email", con)
+        cmd.Parameters.AddWithValue("@Email", TextBox1.Text.Trim())
+
+        Try
+            con.Open()
+            Dim reader As SqlDataReader = cmd.ExecuteReader()
+            If reader.Read() Then
+                Dim fullName As String = reader("FirstName").ToString() & " " & reader("LastName").ToString()
+                TextBox2.Text = fullName
+                TextBox3.Text = reader("Age").ToString()
+                TextBox4.Text = reader("Gender").ToString()
+
+                Dim symptomsString As String = reader("Symptoms").ToString()
+                Dim savedSymptoms As List(Of String) = symptomsString.Split(","c).Select(Function(s) s.Trim()).ToList()
+
+                For i As Integer = 0 To CheckedListBox1.Items.Count - 1
+                    CheckedListBox1.SetItemChecked(i, savedSymptoms.Contains(CheckedListBox1.Items(i).ToString()))
+                Next
+            Else
+                MessageBox.Show("No patient found with that email.")
+            End If
+            con.Close()
+        Catch ex As Exception
+            MessageBox.Show("Error: " & ex.Message)
+            con.Close()
+        End Try
+    End Sub
+
+    ' 🧾 Generate report
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim report As String = $"--- Medical Symptom Report ---{Environment.NewLine}"
+        report &= $"Name: {TextBox2.Text}{Environment.NewLine}"
+        report &= $"Age: {TextBox3.Text}{Environment.NewLine}"
+        report &= $"Gender: {TextBox4.Text}{Environment.NewLine}"
+        report &= $"Email: {TextBox1.Text}{Environment.NewLine}{Environment.NewLine}"
+
+        report &= $"Symptoms:{Environment.NewLine}"
+        For Each symptom As String In CheckedListBox1.CheckedItems
+            report &= $"- {symptom}"
+            If symptomDiagnosis.ContainsKey(symptom) Then
+                report &= $" → {symptomDiagnosis(symptom)}"
+            End If
+            report &= Environment.NewLine
+        Next
+
+        report &= $"{Environment.NewLine}Generated On: {DateTime.Now}"
+        RichTextBox1.Text = report
+    End Sub
+
+    ' 💾 Save report
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim dialog As New SaveFileDialog()
+        dialog.Filter = "Text File|*.txt"
+        dialog.Title = "Save Symptom Report"
+        If dialog.ShowDialog() = DialogResult.OK Then
+            File.WriteAllText(dialog.FileName, RichTextBox1.Text)
+            MessageBox.Show("Report saved successfully.")
+        End If
+    End Sub
+
+    ' 🖨️ Show Print Preview
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        PrintPreviewDialog1.Document = PrintDocument1
+        PrintPreviewDialog1.ShowDialog()
+    End Sub
+
+    ' 🖨️ Print content
+    Private Sub PrintDocument1_PrintPage(sender As Object, e As PrintPageEventArgs) Handles PrintDocument1.PrintPage
+        Dim font As New Font("Arial", 12)
+        Dim brush As Brush = Brushes.Black
+        Dim leftMargin As Single = e.MarginBounds.Left
+        Dim topMargin As Single = e.MarginBounds.Top
+        Dim lineHeight As Single = font.GetHeight(e.Graphics)
+        Dim yPos As Single = topMargin
+
+        Dim lines() As String = RichTextBox1.Text.Split(New String() {Environment.NewLine}, StringSplitOptions.None)
+
+        For Each line As String In lines
+            e.Graphics.DrawString(line, font, brush, leftMargin, yPos)
+            yPos += lineHeight
+        Next
+
+        e.HasMorePages = False
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim dashboardstaff As New dashboardstaff()
+        dashboardstaff.Show()
+        Me.Close()
+        dashboardstaff.Location = Me.Location
+    End Sub
+End Class
+.      .       .     .       .           .               .           .           .           .          .        .          .   .         .           .
