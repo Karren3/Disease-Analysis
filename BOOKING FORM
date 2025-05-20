@@ -1,0 +1,186 @@
+
+
+Imports System.Data.SqlClient
+
+Public Class BookingForm
+    Dim connectionString As String = "Server=DESKTOP-90CKLJ3;Initial Catalog=Appointment;Integrated Security=True;TrustServerCertificate=True;"
+
+    Private Sub BookingForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        LoadDoctors()
+        LoadTimeSlots()
+        LoadAppointments()
+
+        DateTimePicker1.MinDate = DateTime.Today
+
+
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    ' Load Doctors into ComboBox
+    Private Sub LoadDoctors()
+        Dim doctors As List(Of String) = New List(Of String) From {
+            "Dr. Snehal (Cardiologist)",
+            "Dr. Janice (Neurologist)",
+            "Dr. Sanjay (General Physician)",
+            "Dr. Patel (Orthopedic)"
+        }
+        ComboBox1.Items.AddRange(doctors.ToArray())
+    End Sub
+
+    ' Load Available Time Slots into ComboBox
+    Private Sub LoadTimeSlots()
+        Dim timeSlots As String() = {"09:00 AM", "10:00 AM", "11:00 AM", "02:00 PM", "03:00 PM", "04:00 PM"}
+        ComboBox2.Items.AddRange(timeSlots)
+    End Sub
+
+    ' Button Click Event to Book an Appointment
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        ' Prevent NULL values causing errors
+        If String.IsNullOrEmpty(TextBox1.Text) OrElse ComboBox1.SelectedItem Is Nothing OrElse ComboBox2.SelectedItem Is Nothing Then
+            MessageBox.Show("Please fill all fields before booking.", "Missing Information", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        Dim patientName As String = TextBox1.Text
+        Dim doctorName As String = ComboBox1.SelectedItem.ToString()
+        Dim appointmentDate As Date = DateTimePicker1.Value.Date
+        Dim appointmentTime As String = ComboBox2.SelectedItem.ToString()
+
+        Using con As New SqlConnection(connectionString)
+            ' Check if the appointment slot is already taken
+            Dim checkQuery As String = "SELECT COUNT(*) FROM Appointments WHERE DoctorName = @DoctorName AND AppointmentDate = @AppointmentDate AND AppointmentTime = @AppointmentTime"
+            Using checkCmd As New SqlCommand(checkQuery, con)
+                checkCmd.Parameters.AddWithValue("@DoctorName", doctorName)
+                checkCmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate)
+                checkCmd.Parameters.AddWithValue("@AppointmentTime", appointmentTime)
+
+                con.Open()
+                Dim existingCount As Integer = Convert.ToInt32(checkCmd.ExecuteScalar())
+                con.Close()
+
+                If existingCount > 0 Then
+                    MessageBox.Show("This time slot is already booked. Please select a different time.", "Time Slot Unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    Return
+                End If
+            End Using
+
+            ' Insert the new appointment
+            Dim query As String = "INSERT INTO Appointments (PatientName, DoctorName, AppointmentDate, AppointmentTime) VALUES (@PatientName, @DoctorName, @AppointmentDate, @AppointmentTime)"
+            Using cmd As New SqlCommand(query, con)
+                cmd.Parameters.AddWithValue("@PatientName", patientName)
+                cmd.Parameters.AddWithValue("@DoctorName", doctorName)
+                cmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate)
+                cmd.Parameters.AddWithValue("@AppointmentTime", appointmentTime)
+
+                con.Open()
+                cmd.ExecuteNonQuery()
+                con.Close()
+
+                MessageBox.Show("Appointment booked successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                LoadAppointments()
+
+                Me.Hide()
+                Dim Payment As New Payment
+                Payment.Show()
+
+
+
+                ' Open Payment Form Safely
+
+                Payment.Location = Me.Location
+            End Using
+        End Using
+    End Sub
+
+    ' Load and Display Booked Appointments in ListBox
+    Private Sub LoadAppointments()
+        ListBox1.Items.Clear()
+
+        Using con As New SqlConnection(connectionString)
+            Dim query As String = "SELECT AppointmentID, PatientName, DoctorName, AppointmentDate, AppointmentTime FROM Appointments ORDER BY AppointmentDate, AppointmentTime"
+            Using cmd As New SqlCommand(query, con)
+                con.Open()
+                Using reader As SqlDataReader = cmd.ExecuteReader()
+                    While reader.Read()
+                        ' Handle NULL values safely
+                        Dim appointmentID As Object = If(IsDBNull(reader("AppointmentID")), "", reader("AppointmentID"))
+                        Dim patientName As Object = If(IsDBNull(reader("PatientName")), "Unknown", reader("PatientName"))
+                        Dim doctorName As Object = If(IsDBNull(reader("DoctorName")), "Unknown", reader("DoctorName"))
+                        Dim appointmentDate As Object = If(IsDBNull(reader("AppointmentDate")), Date.Now, reader("AppointmentDate"))
+                        Dim appointmentTime As Object = If(IsDBNull(reader("AppointmentTime")), "N/A", reader("AppointmentTime"))
+
+                        ' Add to ListBox
+                        Dim appointmentInfo As String = $"{appointmentID} | {appointmentDate:yyyy-MM-dd} - {appointmentTime} | {patientName} with {doctorName}"
+                        ListBox1.Items.Add(appointmentInfo)
+                    End While
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    ' Button Click Event to Cancel an Appointment
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        If ListBox1.SelectedIndex = -1 Then
+            MessageBox.Show("Please select an appointment to cancel.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        ' Extract Appointment ID from the selected list item
+        Dim selectedAppointment As String = ListBox1.SelectedItem.ToString()
+        Dim appointmentID As Integer
+        If Integer.TryParse(selectedAppointment.Split("|")(0).Trim(), appointmentID) Then
+            Using con As New SqlConnection(connectionString)
+                Dim query As String = "DELETE FROM Appointments WHERE AppointmentID = @AppointmentID"
+                Using cmd As New SqlCommand(query, con)
+                    cmd.Parameters.AddWithValue("@AppointmentID", appointmentID)
+                    con.Open()
+                    cmd.ExecuteNonQuery()
+                    con.Close()
+
+                    MessageBox.Show("Appointment canceled successfully.", "Canceled", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    LoadAppointments()
+                End Using
+            End Using
+        Else
+            MessageBox.Show("Invalid selection. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End If
+
+        Me.Hide()
+
+        Dim Form2 As New Form2()
+
+        Form2.Location = Me.Location
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim Form2 As New Form2()
+        Form2.Show()
+
+        ' Close the current form
+        Me.Close()
+
+
+        Form2.Location = Me.Location
+    End Sub
+
+
+
+
+
+    ' Button to Open Dashboard
+
+End Class
+
+
