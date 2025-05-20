@@ -1,0 +1,60 @@
+
+
+
+Public Class Form2
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim search As New search()
+        search.Show()
+
+        search.Location = Me.Location
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        Dim bookingForm As New BookingForm()
+        bookingForm.Show()
+
+        bookingForm.Location = Me.Location
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim Form1 As New Form1()
+        Form1.Show()
+        Form1.Location = Me.Location
+
+        Form1.Location = Me.Location
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim home As New Home()
+        home.Show()
+
+        ' Close the current form
+        Me.Close()
+
+
+        home.Location = Me.Location
+
+    End Sub
+
+    Private Sub Form2_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim med As New med()
+        med.Show()
+        med.Location = Me.Location
+
+        med.Location = Me.Location
+    End Sub
+End Class
