@@ -1,0 +1,53 @@
+Imports System.Data.SqlClient
+Public Class login
+    Private connectionString As String = "Server=DESKTOP-90CKLJ3;Initial Catalog=regisdb;Integrated Security=True;"
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+        Dim FirstName As String = TextBox1.Text.Trim()
+        Dim Password As String = TextBox2.Text.Trim()
+        If firstName = "" Or password = "" Then
+            MessageBox.Show("Please enter all fields!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+
+            Exit Sub
+        End If
+
+        Using conn As New SqlConnection(connectionString)
+            conn.Open()
+            Dim query As String = "SELECT COUNT(*) FROM regis_table WHERE FirstName = @FirstName AND Password = @Password"
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@FirstName", FirstName)
+                cmd.Parameters.AddWithValue("@Password", Password)
+                Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+
+                If count > 0 Then
+                    MessageBox.Show("Login Successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Dim Form2 As New Form2()
+                    Form2.Show()
+                    Me.Hide()
+                    Form2.Location = Me.Location
+
+                Else
+                    MessageBox.Show("Invalid First Name or Password!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End If
+            End Using
+        End Using
+    End Sub
+
+    Private Sub login_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.WindowState = FormWindowState.Maximized
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        TextBox2.UseSystemPasswordChar = Not CheckBox1.Checked
+    End Sub
+End Class
