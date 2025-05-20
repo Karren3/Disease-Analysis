@@ -1,0 +1,171 @@
+
+
+Imports System.Data.SqlClient
+Imports System.Drawing.Printing
+Imports System.IO
+
+Public Class Payment
+    Dim con As New SqlConnection("Server=DESKTOP-90CKLJ3;Initial Catalog=Paymentdb;Integrated Security=True;TrustServerCertificate=True;")
+    Dim prices As New Dictionary(Of String, Decimal) From {
+        {"Consultation", 50.0},
+        {"Surgery", 500.0},
+        {"Lab Test", 100.0}
+    }
+
+    Private receiptContent As String
+
+    Private Sub PaymentForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ComboBox1.Items.AddRange(New String() {"Consultation", "Surgery", "Lab Test"})
+        ComboBox2.Items.AddRange(New String() {"Cash", "Card", "UPI"})
+        TextBox3.Visible = False
+        PictureBox1.Visible = False
+        Me.WindowState = FormWindowState.Maximized
+
+        Me.DoubleBuffered = True
+
+        If Not Me.DesignMode Then
+            Try
+                Me.BackgroundImage = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\pic.png")
+                Me.BackgroundImageLayout = ImageLayout.Stretch
+            Catch ex As Exception
+                MessageBox.Show("Error loading background image: " & ex.Message, "Image Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+    Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
+        If prices.ContainsKey(ComboBox1.Text) Then
+            Label4.Text = "Amount: Rs" & prices(ComboBox1.Text).ToString("F2")
+        Else
+            Label4.Text = "Amount: Rs0.00"
+        End If
+    End Sub
+
+    ' Payment Submission
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        If TextBox1.Text = "" Or ComboBox1.Text = "" Or ComboBox2.Text = "" Then
+            MessageBox.Show("Please fill all fields", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return
+        End If
+
+        If ComboBox2.Text = "Card" AndAlso TextBox3.Text = "" Then
+            MessageBox.Show("Please enter the card number.", "Missing Card Info", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return
+        End If
+
+        Dim amount As Decimal = prices(ComboBox1.Text)
+
+        ' Save Payment
+        con.Open()
+        Dim cmd As New SqlCommand("INSERT INTO Payments (PatientName, Amount, PaymentMethod) VALUES (@PatientName, @Amount, @PaymentMethod)", con)
+        cmd.Parameters.AddWithValue("@PatientName", TextBox1.Text)
+        cmd.Parameters.AddWithValue("@Amount", amount)
+        cmd.Parameters.AddWithValue("@PaymentMethod", ComboBox2.Text)
+        cmd.ExecuteNonQuery()
+        con.Close()
+
+        MessageBox.Show("Payment Recorded Successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
+
+        ' Build Receipt Content
+        receiptContent = $"------ PAYMENT RECEIPT ------{Environment.NewLine}" &
+                         $"Patient Name: {TextBox1.Text}{Environment.NewLine}" &
+                         $"Service: {ComboBox1.Text}{Environment.NewLine}" &
+                         $"Payment Method: {ComboBox2.Text}{Environment.NewLine}" &
+                         $"Amount Paid: Rs {amount:F2}{Environment.NewLine}"
+
+        If ComboBox2.Text = "Card" Then
+            receiptContent &= $"Card Number: **** **** **** {TextBox3.Text.Substring(TextBox3.Text.Length - 4)}{Environment.NewLine}"
+        ElseIf ComboBox2.Text = "UPI" Then
+            receiptContent &= $"UPI Payment via QR Code{Environment.NewLine}"
+        End If
+
+        receiptContent &= $"Date: {DateTime.Now:yyyy-MM-dd HH:mm}{Environment.NewLine}" &
+                          $"------------------------------"
+
+        TextBox2.Text = receiptContent
+    End Sub
+
+    ' Return to Form2
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim Form2 As New Form2()
+        Form2.Show()
+        Me.Close()
+        Form2.Location = Me.Location
+    End Sub
+
+    ' Print Preview
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        If String.IsNullOrEmpty(receiptContent) Then
+            MessageBox.Show("No receipt to print.")
+            Return
+        End If
+
+        PrintPreviewDialog1.Document = PrintDocument1
+        PrintPreviewDialog1.ShowDialog()
+    End Sub
+
+    ' Save Receipt to Text File
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        If String.IsNullOrEmpty(receiptContent) Then
+            MessageBox.Show("No receipt to save.")
+            Return
+        End If
+
+        Dim sfd As New SaveFileDialog()
+        sfd.Filter = "Text Files (*.txt)|*.txt"
+        sfd.FileName = $"Receipt_{TextBox1.Text}_{DateTime.Now:yyyyMMddHHmmss}.txt"
+
+        If sfd.ShowDialog() = DialogResult.OK Then
+            File.WriteAllText(sfd.FileName, receiptContent)
+            MessageBox.Show("Receipt saved successfully!", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
+    End Sub
+
+    ' Print Receipt
+    Private Sub PrintDocument1_PrintPage(sender As Object, e As PrintPageEventArgs) Handles PrintDocument1.PrintPage
+        Dim font As New Font("Courier New", 12)
+        Dim brush As Brush = Brushes.Black
+        Dim leftMargin As Single = e.MarginBounds.Left
+        Dim topMargin As Single = e.MarginBounds.Top
+        Dim yPos As Single = topMargin
+        Dim lineHeight As Single = font.GetHeight(e.Graphics)
+
+        Dim lines() As String = receiptContent.Split(New String() {Environment.NewLine}, StringSplitOptions.None)
+        For Each line As String In lines
+            e.Graphics.DrawString(line, font, brush, leftMargin, yPos)
+            yPos += lineHeight
+        Next
+
+        e.HasMorePages = False
+    End Sub
+
+    ' Payment Method Change Logic
+    Private Sub ComboBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox2.SelectedIndexChanged
+        TextBox3.Visible = (ComboBox2.Text = "Card")
+        PictureBox1.Visible = (ComboBox2.Text = "UPI")
+
+        If ComboBox2.Text = "UPI" Then
+            ' Load QR image (replace path with your QR image location)
+            PictureBox1.Image = Image.FromFile("C:\Users\Karren\OneDrive\Pictures\qr.png")
+            PictureBox1.SizeMode = PictureBoxSizeMode.StretchImage
+        End If
+    End Sub
+End Class
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
